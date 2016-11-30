@@ -19,13 +19,18 @@ class adapterListView extends BaseAdapter {
     Context context;
     String[] data;
     String[] urls;
+    String[] userpictures;
+    int sizeX;
+
     private static LayoutInflater inflater = null;
 
-    public adapterListView(Context context, String[] data, String[] urls) {
+    public adapterListView(Context context, String[] data, String[] urls, String[] userpictures, int size) {
         // TODO Auto-generated constructor stub
         this.context = context;
         this.data = data;
         this.urls = urls;
+        this.sizeX = size;
+        this.userpictures = userpictures;
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
@@ -54,6 +59,11 @@ class adapterListView extends BaseAdapter {
         if (vi == null) {
             vi = inflater.inflate(R.layout.rowlistview, null);
         }
+
+        ImageView image_view = (ImageView) vi.findViewById(R.id.imageView);
+        image_view.getLayoutParams().width = sizeX;
+        image_view.getLayoutParams().height = sizeX;
+
         TextView text = (TextView) vi.findViewById(R.id.username);
         text.setText(data[position]);
 
@@ -61,7 +71,7 @@ class adapterListView extends BaseAdapter {
         Picasso.with(context).load(urls[position]).into(imageUploaded);
 
         ImageView imageIcon = (ImageView) vi.findViewById(R.id.imageView2);
-        Picasso.with(context).load(urls[position]).into(imageIcon);
+        Picasso.with(context).load(userpictures[position]).into(imageIcon);
 
 
         return vi;

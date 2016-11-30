@@ -28,15 +28,17 @@ public class getInfo extends AsyncTask<Void, Void, Void> {
     private Context cxt;
     ArrayList<String> urls = new ArrayList<String>();
     ArrayList<String> usernames = new ArrayList<String>();
+    ArrayList<String> userPictures = new ArrayList<String>();
     private ProgressDialog progressDialog;
+    int sizeX;
 
 
-    public getInfo(ProgressDialog pDialog, Context context, String urlToGet, String name) {
+    public getInfo(ProgressDialog pDialog, Context context, String urlToGet, String name, int size) {
         this.url = urlToGet;
         this.root_name = name;
         this.cxt = context;
         this.progressDialog = pDialog;
-
+        this.sizeX = size;
     }
 
     @Override
@@ -59,6 +61,7 @@ public class getInfo extends AsyncTask<Void, Void, Void> {
 
                     usernames.add(c.getString("username"));
                     urls.add(c.getString("url"));
+                    userPictures.add(c.getString("urlfoto"));
 
 
                 }
@@ -83,10 +86,11 @@ public class getInfo extends AsyncTask<Void, Void, Void> {
 
         String[] us = usernames.toArray(new String[0]);
         String[] ur = urls.toArray(new String[0]);
+        String[] up = userPictures.toArray(new String[0]);
 
         // URL to get contacts JSON
         ListView listview = (ListView) ((Activity) cxt).findViewById(R.id.imageListView);
-        listview.setAdapter(new adapterListView(cxt, us, ur));
+        listview.setAdapter(new adapterListView(cxt, us, ur, up, sizeX));
 
         progressDialog.dismiss();
 

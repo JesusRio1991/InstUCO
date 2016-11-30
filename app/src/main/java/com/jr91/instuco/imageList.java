@@ -1,11 +1,13 @@
 package com.jr91.instuco;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -13,7 +15,7 @@ import android.widget.ListView;
 
 public class imageList extends AppCompatActivity {
 
-    private static String url = "https://jesusrio.me/UCOgram/";
+    private static String url = "http://ucogram.hol.es/";
     ProgressDialog progressDialog;
 
 
@@ -24,6 +26,10 @@ public class imageList extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Downloading images ...");
         progressDialog.show();
@@ -32,15 +38,15 @@ public class imageList extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent intent = new Intent(imageList.this, uploadPicture.class);
+                startActivity(intent);
             }
         });
 
         ListView listview = (ListView) findViewById(R.id.imageListView);
-        listview.setAdapter(new adapterListView(this, new String[]{}, new String[]{}));
+        listview.setAdapter(new adapterListView(this, new String[]{}, new String[]{}, new String[]{}, size.x));
 
-        new getInfo(progressDialog, this, url + "getMain.php", "main").execute();
+        new getInfo(progressDialog, this, url + "getMain.php", "main", size.x).execute();
 
     }
 
