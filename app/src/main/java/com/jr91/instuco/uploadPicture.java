@@ -1,8 +1,10 @@
 package com.jr91.instuco;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Point;
@@ -11,6 +13,7 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Display;
@@ -33,7 +36,6 @@ public class uploadPicture extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 1888;
     private ImageView imageView;
     private Bitmap photo;
-    String result = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +46,17 @@ public class uploadPicture extends AppCompatActivity {
 
         this.imageView = (ImageView) this.findViewById(R.id.imageView5);
 
-        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(cameraIntent, CAMERA_REQUEST);
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+
+            Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+            startActivityForResult(cameraIntent, CAMERA_REQUEST);
+        } else {
+            Toast.makeText(this, "Debes dar permiso de cámara", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(this, imageList.class);
+            startActivity(intent);
+        }
     }
 
     protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
