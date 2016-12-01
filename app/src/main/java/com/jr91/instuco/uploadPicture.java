@@ -2,13 +2,17 @@ package com.jr91.instuco;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.MediaStore;
@@ -21,21 +25,21 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
+import com.facebook.Profile;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 
 public class uploadPicture extends AppCompatActivity {
 
     private static final int CAMERA_REQUEST = 1888;
     private ImageView imageView;
-    private Bitmap photo;
+    private Uri imageUri;
+    Bitmap thumbnail = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,19 +54,35 @@ public class uploadPicture extends AppCompatActivity {
                 Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED) {
 
-            Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-            startActivityForResult(cameraIntent, CAMERA_REQUEST);
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.TITLE, "New Picture");
+            values.put(MediaStore.Images.Media.DESCRIPTION, "From your Camera");
+            imageUri = getContentResolver().insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+            startActivityForResult(intent, CAMERA_REQUEST);
+
+
         } else {
             Toast.makeText(this, "Debes dar permiso de cámara", Toast.LENGTH_LONG).show();
-            Intent intent = new Intent(this, imageList.class);
+            Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
         }
     }
 
     protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            photo = (Bitmap) data.getExtras().get("data");
-            imageView.setImageBitmap(photo);
+
+            try {
+                thumbnail = MediaStore.Images.Media.getBitmap(
+                        getContentResolver(), imageUri);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            imageView.setImageBitmap(thumbnail);
+
 
             Display display = getWindowManager().getDefaultDisplay();
             Point size = new Point();
@@ -75,11 +95,15 @@ public class uploadPicture extends AppCompatActivity {
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    ProgressDialog p = new ProgressDialog(uploadPicture.this);
+                    p.setMessage("Subiendo foto...");
+                    p.show();
                     try {
-                        upload(data);
+                        upload(thumbnail);
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
                     }
+                    p.dismiss();
                 }
             });
         }
@@ -88,7 +112,7 @@ public class uploadPicture extends AppCompatActivity {
 
     public Uri getImageUri(Context inContext, Bitmap inImage) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        inImage.compress(Bitmap.CompressFormat.PNG, 100, bytes);
         String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
         return Uri.parse(path);
     }
@@ -100,9 +124,10 @@ public class uploadPicture extends AppCompatActivity {
         return cursor.getString(idx);
     }
 
-    public void upload(Intent data) throws UnsupportedEncodingException {
+    public void upload(Bitmap data) throws UnsupportedEncodingException {
 
-        int SDK_INT = android.os.Build.VERSION.SDK_INT;
+
+        int SDK_INT = Build.VERSION.SDK_INT;
         if (SDK_INT > 8) {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
                     .permitAll().build();
@@ -112,16 +137,21 @@ public class uploadPicture extends AppCompatActivity {
         }
 
         // CALL THIS METHOD TO GET THE URI FROM THE BITMAP
-        Uri tempUri = getImageUri(getApplicationContext(), photo);
+        Uri tempUri = getImageUri(getApplicationContext(), data);
 
         // CALL THIS METHOD TO GET THE ACTUAL PATH
         File finalFile = new File(getRealPathFromURI(tempUri));
 
+        System.out.println("--> " + getRealPathFromURI(tempUri));
+
         String filename = finalFile.getAbsolutePath();
+        SharedPreferences sharedpreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        String Uname = sharedpreferences.getString("idUser", "");
 
         try {
+            Profile profile = Profile.getCurrentProfile();
             FileInputStream fis = new FileInputStream(filename);
-            HttpFileUploader htfu = new HttpFileUploader("http://ucogram.hol.es/uploadFoto.php", "uploadedfile", filename);
+            HttpFileUploader htfu = new HttpFileUploader("http://ucogram.hol.es/uploadFoto.php?username=" + profile.getFirstName() + profile.getLastName(), "uploadedfile", filename);
             htfu.doStart(fis);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -138,8 +168,9 @@ public class uploadPicture extends AppCompatActivity {
 
                         @Override
                         public void run() {
-                            Intent intent = new Intent(uploadPicture.this, imageList.class);
+                            Intent intent = new Intent(uploadPicture.this, MainActivity.class);
                             startActivity(intent);
+                            finish();
 
                         }
                     });
@@ -159,26 +190,5 @@ public class uploadPicture extends AppCompatActivity {
         t.start();
     }
 
-    private static String convertStreamToString(InputStream is) {
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder sb = new StringBuilder();
-
-        String line = null;
-        try {
-            while ((line = reader.readLine()) != null) {
-                sb.append((line + "\n"));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                is.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return sb.toString();
-    }
 
 }

@@ -4,23 +4,28 @@
 
     <uses-permission
         android:name="android.permission.CAMERA"
-        android:required="true"></uses-permission>
+        android:required="true" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:required="true" />
     <uses-permission
         android:name="android.permission.INTERNET"
-        android:required="true"></uses-permission>
-
+        android:required="true" />
 
     <application
         android:allowBackup="true"
+        android:hardwareAccelerated="false"
+        android:largeHeap="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
+
         <activity
-            android:name=".imageList"
+            android:name=".loginActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -32,7 +37,15 @@
         <activity
             android:name=".uploadPicture"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBar"></activity><!-- ATTENTION: This was auto-generated to add Google Play services to your project for
+     App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information. -->
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
     </application>
 
 </manifest>

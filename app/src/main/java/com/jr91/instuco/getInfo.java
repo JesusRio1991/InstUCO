@@ -92,7 +92,6 @@ public class getInfo extends AsyncTask<Void, Void, Void> {
         ListView listview = (ListView) ((Activity) cxt).findViewById(R.id.imageListView);
         listview.setAdapter(new adapterListView(cxt, us, ur, up, sizeX));
 
-        progressDialog.dismiss();
 
     }
 
