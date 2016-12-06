@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -15,8 +16,10 @@ import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
+import org.json.JSONObject;
+
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.util.Iterator;
 
 
 public class loginActivity extends AppCompatActivity {
@@ -75,16 +78,25 @@ public class loginActivity extends AppCompatActivity {
         String nombre = profile.getFirstName().replace(" ", "");
         String apellidos = profile.getLastName().replace(" ", "");
 
-        String url = "http://ucogram.hol.es/setUser.php?username=" + nombre + apellidos + "&urlfoto=";
+        String url = "http://ucogram.hol.es/setUser.php";
 
-        url = remove(url);
+        url += "?username=" + remove(nombre + apellidos) + "&urlfoto=" + "https://graph.facebook.com/" + userId + "/picture?type=large";
 
-        url = url + URLEncoder.encode("https://graph.facebook.com/" + userId + "/picture?type=large", "UTF-8");
+        HttpURLConnectionE h = new HttpURLConnectionE();
+        try {
+            String json = h.sendGet(url);
+            JSONObject jsonObj = new JSONObject(json);
 
-        HttpHandler sh = new HttpHandler();
-        sh.makeServiceCall(url.trim());
+            Iterator<String> keys = jsonObj.keys();
+            while (keys.hasNext()) {
+                String keyValue = (String) keys.next();
+                String valueString = jsonObj.getString(keyValue);
+                Toast.makeText(this, valueString, Toast.LENGTH_LONG).show();
+            }
 
-        System.out.println("[" + url.trim() + "]");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);

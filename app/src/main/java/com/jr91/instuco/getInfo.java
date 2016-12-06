@@ -29,6 +29,9 @@ public class getInfo extends AsyncTask<Void, Void, Void> {
     ArrayList<String> urls = new ArrayList<String>();
     ArrayList<String> usernames = new ArrayList<String>();
     ArrayList<String> userPictures = new ArrayList<String>();
+    ArrayList<String> idFoto = new ArrayList<String>();
+    ArrayList<String> comentario = new ArrayList<String>();
+    ArrayList<String> like = new ArrayList<String>();
     private ProgressDialog progressDialog;
     int sizeX;
 
@@ -43,10 +46,17 @@ public class getInfo extends AsyncTask<Void, Void, Void> {
 
     @Override
     protected Void doInBackground(Void... arg0) {
-        HttpHandler sh = new HttpHandler();
 
-        // Making a request to url and getting response
-        String jsonStr = sh.makeServiceCall(url);
+        String jsonStr = null;
+
+        HttpURLConnectionE h = new HttpURLConnectionE();
+        try {
+            jsonStr = h.sendGet(url);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         if (jsonStr != null) {
             try {
@@ -62,8 +72,9 @@ public class getInfo extends AsyncTask<Void, Void, Void> {
                     usernames.add(c.getString("username"));
                     urls.add(c.getString("url"));
                     userPictures.add(c.getString("urlfoto"));
-
-
+                    idFoto.add(c.getString("idfoto"));
+                    comentario.add(c.getString("comment"));
+                    like.add(c.getString("like"));
                 }
             } catch (final JSONException e) {
                 Log.e("ERROR -> ", "Json parsing error: " + e.getMessage());
@@ -87,11 +98,18 @@ public class getInfo extends AsyncTask<Void, Void, Void> {
         String[] us = usernames.toArray(new String[0]);
         String[] ur = urls.toArray(new String[0]);
         String[] up = userPictures.toArray(new String[0]);
+        String[] id = idFoto.toArray(new String[0]);
+        String[] cm = comentario.toArray(new String[0]);
+        String[] li = like.toArray(new String[0]);
+
+
+        final adapterListView adapter = new adapterListView(li, cxt, us, ur, up, id, idFoto, sizeX, cm);
 
         // URL to get contacts JSON
-        ListView listview = (ListView) ((Activity) cxt).findViewById(R.id.imageListView);
-        listview.setAdapter(new adapterListView(cxt, us, ur, up, sizeX));
+        final ListView listview = (ListView) ((Activity) cxt).findViewById(R.id.imageListView);
+        listview.setAdapter(adapter);
 
+        progressDialog.dismiss();
 
     }
 

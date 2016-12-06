@@ -13,18 +13,23 @@
     tools:context="com.jr91.instuco.MainActivity"
     tools:showIn="@layout/activity_main">
 
+
     <ListView
         android:id="@+id/imageListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentLeft="true"
         android:padding="0dp"
+        android:clickable="false"
         android:divider="@null"
         android:text="Hello World!"
         android:layout_marginLeft="0dp"
         android:layout_marginRight="0dp"
         android:layout_marginBottom="0dp"
-        android:layout_marginTop="0dp" />
+        android:layout_marginTop="0dp"
+        android:focusable="false"
+        tools:focusable="false"
+        android:focusableInTouchMode="false" />
 
 </RelativeLayout>
 

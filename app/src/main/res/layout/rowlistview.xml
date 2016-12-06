@@ -39,27 +39,41 @@
 
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="406dp"
         app:srcCompat="@android:color/background_light"
         android:id="@+id/imageView"
         android:scaleType="fitXY"
-        android:layout_marginTop="5dp" />
+        android:layout_marginTop="5dp"
+        android:layout_height="350dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/comment"
+        android:layout_weight="3.01"
+        android:textSize="14sp"
+        android:textColor="@android:color/black"
+        android:paddingLeft="45dp"
+        android:paddingRight="45dp"
+        android:text="Comentario"
+        android:paddingTop="20dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingLeft="40dp">
+        android:paddingLeft="40dp"
+        android:layout_marginTop="20dp">
 
         <ImageView
-            app:srcCompat="@drawable/ic_heart"
+            app:srcCompat="@mipmap/ic_b_corazon"
             android:id="@+id/imageView3"
             android:layout_height="50dp"
             android:layout_width="50dp"
-            android:layout_marginRight="10dp" />
+            android:layout_marginRight="10dp"
+            android:clickable="true" />
 
         <ImageView
-            app:srcCompat="@drawable/ic_heart"
+            app:srcCompat="@mipmap/ic_comment"
             android:id="@+id/imageView4"
             android:layout_height="50dp"
             android:layout_width="50dp" />

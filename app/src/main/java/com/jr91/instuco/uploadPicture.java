@@ -6,10 +6,11 @@ import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
@@ -22,6 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Display;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -33,6 +35,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 public class uploadPicture extends AppCompatActivity {
 
@@ -40,6 +43,7 @@ public class uploadPicture extends AppCompatActivity {
     private ImageView imageView;
     private Uri imageUri;
     Bitmap thumbnail = null;
+    EditText mEdit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +51,8 @@ public class uploadPicture extends AppCompatActivity {
         setContentView(R.layout.activity_upload_picture);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        mEdit = (EditText) findViewById(R.id.editText);
 
         this.imageView = (ImageView) this.findViewById(R.id.imageView5);
 
@@ -74,12 +80,24 @@ public class uploadPicture extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
 
+
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = 5;
+            AssetFileDescriptor fileDescriptor = null;
+
             try {
-                thumbnail = MediaStore.Images.Media.getBitmap(
-                        getContentResolver(), imageUri);
-            } catch (IOException e) {
+                fileDescriptor = this.getContentResolver().openAssetFileDescriptor(imageUri, "r");
+            } catch (FileNotFoundException e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    thumbnail = BitmapFactory.decodeFileDescriptor(fileDescriptor.getFileDescriptor(), null, options);
+                    fileDescriptor.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
+
 
             imageView.setImageBitmap(thumbnail);
 
@@ -106,6 +124,8 @@ public class uploadPicture extends AppCompatActivity {
                     p.dismiss();
                 }
             });
+
+
         }
     }
 
@@ -145,15 +165,24 @@ public class uploadPicture extends AppCompatActivity {
         System.out.println("--> " + getRealPathFromURI(tempUri));
 
         String filename = finalFile.getAbsolutePath();
-        SharedPreferences sharedpreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        String Uname = sharedpreferences.getString("idUser", "");
+
 
         try {
             Profile profile = Profile.getCurrentProfile();
+
+            String nombre = profile.getFirstName().replace(" ", "");
+            String apellidos = profile.getLastName().replace(" ", "");
+
             FileInputStream fis = new FileInputStream(filename);
-            HttpFileUploader htfu = new HttpFileUploader("http://ucogram.hol.es/uploadFoto.php?username=" + profile.getFirstName() + profile.getLastName(), "uploadedfile", filename);
+            HttpFileUploader htfu = new HttpFileUploader("http://ucogram.hol.es/uploadFoto.php?comment=" + URLEncoder.encode(mEdit.getText().toString()) + "&username=" + remove(nombre + apellidos), "uploadedfile", filename);
             htfu.doStart(fis);
+            fis.close();
+
+            System.out.println("URL -> " + "http://ucogram.hol.es/uploadFoto.php?comment=" + URLEncoder.encode(mEdit.getText().toString()) + "&username=" + remove(nombre + apellidos));
+
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -188,7 +217,26 @@ public class uploadPicture extends AppCompatActivity {
             }
         });
         t.start();
+
+        if (thumbnail != null && !thumbnail.isRecycled()) {
+            thumbnail.recycle();
+            thumbnail = null;
+        }
     }
+
+    public static String remove(String input) {
+        // Cadena de caracteres original a sustituir.
+        String original = "áàäéèëíìïóòöúùuñÁÀÄÉÈËÍÌÏÓÒÖÚÙÜÑçÇ";
+        // Cadena de caracteres ASCII que reemplazarán los originales.
+        String ascii = "aaaeeeiiiooouuunAAAEEEIIIOOOUUUNcC";
+        String output = input;
+        for (int i = 0; i < original.length(); i++) {
+            // Reemplazamos los caracteres especiales.
+            output = output.replace(original.charAt(i), ascii.charAt(i));
+        }//for i
+        return output;
+    }//remove1
+
 
 
 }

@@ -5,11 +5,13 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.Display;
 import android.view.Menu;
@@ -20,22 +22,15 @@ import android.widget.ListView;
 import com.facebook.AccessToken;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
-import com.google.android.gms.common.api.GoogleApiClient;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     private static String url = "http://ucogram.hol.es/";
     ProgressDialog progressDialog;
     public static final String MyPREFERENCES = "MyPrefs";
     public static final String id = "idUser";
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
+    SwipeRefreshLayout refreshLayout;
+    int width = 0;
 
 
     @Override
@@ -45,11 +40,19 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
+        refreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeToRefresh);
+        refreshLayout.setOnRefreshListener(this);
+
         if (AccessToken.getCurrentAccessToken() == null || Profile.getCurrentProfile() == null) {
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
             finish();
         }
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Downloading images ...");
+        progressDialog.show();
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
         } else {
@@ -78,29 +81,73 @@ public class MainActivity extends AppCompatActivity {
         Point size = new Point();
         display.getSize(size);
 
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, uploadPicture.class);
-                startActivity(intent);
+
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                    Intent intent = new Intent(MainActivity.this, uploadPicture.class);
+                    startActivity(intent);
+                } else {
+
+                    int hasWriteSDPermission = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+                    if (hasWriteSDPermission != PackageManager.PERMISSION_GRANTED) {
+                        requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 112);
+                        // Toast.makeText(this, "Requesting permissions", Toast.LENGTH_LONG).show();
+                    } else if (hasWriteSDPermission == PackageManager.PERMISSION_GRANTED) {
+                        //Toast.makeText(this, "The permissions are already granted ", Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent(MainActivity.this, uploadPicture.class);
+                        startActivity(intent);
+                    }
+                }
             }
         });
 
         ListView listview = (ListView) findViewById(R.id.imageListView);
-        listview.setAdapter(new adapterListView(this, new String[]{}, new String[]{}, new String[]{}, size.x));
+        listview.setAdapter(new adapterListView(new String[]{}, this, new String[]{}, new String[]{}, new String[]{}, new String[]{}, null, size.x, new String[]{}));
 
-        new getInfo(progressDialog, this, url + "getMain.php", "main", size.x).execute();
+        width = size.x;
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+        Profile profile = Profile.getCurrentProfile();
+
+        String nombre = profile.getFirstName().replace(" ", "");
+        String apellidos = profile.getLastName().replace(" ", "");
+
+        new getInfo(progressDialog, this, url + "getMain.php?username=" + remove(nombre + apellidos), "main", width).execute();
+
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_image_list, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        // See above
+        //MenuItemCompat.setOnActionExpandListener(searchItem, new SearchViewExpandListener(this));
+        //MenuItemCompat.setActionView(searchItem, searchView);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                //Toast.makeText(MainActivity.this, "You searched " + s, Toast.LENGTH_SHORT).show();
+
+                Intent i = new Intent(MainActivity.this, searchActivity.class);
+                i.putExtra("q", s);
+                startActivity(i);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                return false;
+            }
+        });
         return true;
     }
 
@@ -123,39 +170,29 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    public Action getIndexApiAction() {
-        Thing object = new Thing.Builder()
-                .setName("Main Page") // TODO: Define a title for the content shown.
-                // TODO: Make sure this auto-generated URL is correct.
-                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
-                .build();
-        return new Action.Builder(Action.TYPE_VIEW)
-                .setObject(object)
-                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
-                .build();
-    }
-
     @Override
-    public void onStart() {
-        super.onStart();
+    public void onRefresh() {
+        Profile profile = Profile.getCurrentProfile();
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        AppIndex.AppIndexApi.start(client, getIndexApiAction());
+        String nombre = profile.getFirstName().replace(" ", "");
+        String apellidos = profile.getLastName().replace(" ", "");
+
+        new getInfo(progressDialog, this, url + "getMain.php?username=" + remove(nombre + apellidos), "main", width).execute();
+        refreshLayout.setRefreshing(false);
+
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        AppIndex.AppIndexApi.end(client, getIndexApiAction());
-        client.disconnect();
-    }
+    public static String remove(String input) {
+        // Cadena de caracteres original a sustituir.
+        String original = "áàäéèëíìïóòöúùuñÁÀÄÉÈËÍÌÏÓÒÖÚÙÜÑçÇ";
+        // Cadena de caracteres ASCII que reemplazarán los originales.
+        String ascii = "aaaeeeiiiooouuunAAAEEEIIIOOOUUUNcC";
+        String output = input;
+        for (int i = 0; i < original.length(); i++) {
+            // Reemplazamos los caracteres especiales.
+            output = output.replace(original.charAt(i), ascii.charAt(i));
+        }//for i
+        return output;
+    }//remove1
 }

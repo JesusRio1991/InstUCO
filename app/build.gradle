@@ -22,6 +22,9 @@ android {
 
 repositories {
     mavenCentral()
+    jcenter {
+        url "http://jcenter.bintray.com/"
+    }
 }
 
 dependencies {
