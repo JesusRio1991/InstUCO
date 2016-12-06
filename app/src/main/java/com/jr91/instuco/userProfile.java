@@ -4,9 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.View;
+import android.widget.Button;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.facebook.Profile;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -29,11 +33,16 @@ public class userProfile extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         Intent intent = getIntent();
-        String q = intent.getExtras().getString("username");
+        final String q = intent.getExtras().getString("username");
+
+        Profile profile = Profile.getCurrentProfile();
+
+        String nombre = profile.getFirstName().replace(" ", "");
+        String apellidos = profile.getLastName().replace(" ", "");
 
         HttpURLConnectionE h = new HttpURLConnectionE();
         try {
-            String json = h.sendGet("http://ucogram.hol.es/getProfile.php?username=" + q);
+            String json = h.sendGet("http://ucogram.hol.es/getProfile.php?username=" + q + "&username2=" + remove(nombre + apellidos));
 
             JSONObject jsonObj = new JSONObject(json);
 
@@ -56,9 +65,74 @@ public class userProfile extends AppCompatActivity {
 
 
             JSONArray fotoPerfil = jsonObj.getJSONArray("fotoPerfil");
-            JSONObject fotoPerfil_c = fotoPerfil.getJSONObject(0);
+            final JSONObject fotoPerfil_c = fotoPerfil.getJSONObject(0);
             ImageView imageUploaded = (ImageView) findViewById(R.id.profileImg);
             Picasso.with(this).load(fotoPerfil_c.getString("urlfoto")).into(imageUploaded);
+
+
+            String[] urls_grid = new String[500];
+            String[] ids = new String[500];
+            JSONArray object = jsonObj.getJSONArray("pictures");
+
+            for (int i = 0; i < object.length(); i++) {
+                JSONObject c = object.getJSONObject(i);
+                urls_grid[i] = c.getString("url");
+                ids[i] = c.getString("idfoto");
+
+            }
+
+            GridView gridView = (GridView) findViewById(R.id.gridProfile);
+            gridView.setNumColumns(3);
+            gridView.setAdapter(new adapterProfile(ids, urls_grid, this));
+
+            final Button btn = (Button) findViewById(R.id.profileSeguir);
+
+            JSONArray fri = jsonObj.getJSONArray("friends");
+            final JSONObject fri_c = fri.getJSONObject(0);
+
+            int friend = 0;
+
+            if (fri_c.getString("value").compareTo("0") == 0) {
+                btn.setText("SIGUIENDO");
+                friend = 0;
+            } else {
+                btn.setText("SEGUIR");
+                friend = 1;
+            }
+
+
+            final int[] finalFriend = {friend};
+            btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    Profile profile = Profile.getCurrentProfile();
+
+                    String nombre = profile.getFirstName().replace(" ", "");
+                    String apellidos = profile.getLastName().replace(" ", "");
+                    String url = "";
+
+                    if (finalFriend[0] == 0) {
+                        btn.setText("SEGUIR");
+                        url = "http://ucogram.hol.es/setNotFriends.php?username1=" + remove(nombre + apellidos) + "&username2=" + q;
+                        finalFriend[0] = 1;
+                    } else {
+                        btn.setText("SIGUIENDO");
+                        url = "http://ucogram.hol.es/setFriends.php?username1=" + remove(nombre + apellidos) + "&username2=" + q;
+                        finalFriend[0] = 0;
+                    }
+
+
+                    HttpURLConnectionE h = new HttpURLConnectionE();
+                    try {
+                        h.sendGet(url);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+
+                }
+            });
 
 
         } catch (Exception e) {
@@ -66,5 +140,18 @@ public class userProfile extends AppCompatActivity {
         }
 
     }
+
+    public static String remove(String input) {
+        // Cadena de caracteres original a sustituir.
+        String original = "áàäéèëíìïóòöúùuñÁÀÄÉÈËÍÌÏÓÒÖÚÙÜÑçÇ";
+        // Cadena de caracteres ASCII que reemplazarán los originales.
+        String ascii = "aaaeeeiiiooouuunAAAEEEIIIOOOUUUNcC";
+        String output = input;
+        for (int i = 0; i < original.length(); i++) {
+            // Reemplazamos los caracteres especiales.
+            output = output.replace(original.charAt(i), ascii.charAt(i));
+        }//for i
+        return output;
+    }//remove1
 
 }

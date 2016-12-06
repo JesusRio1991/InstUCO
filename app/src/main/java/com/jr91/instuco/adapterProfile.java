@@ -1,12 +1,15 @@
 package com.jr91.instuco;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Point;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
@@ -16,31 +19,27 @@ import com.squareup.picasso.Picasso;
 
 public class adapterProfile extends BaseAdapter {
 
-    String[] publicaciones;
     String[] urls;
-    String[] siguendo;
-    String[] seguidores;
+    String[] ids;
     Context cxt;
     private static LayoutInflater inflater = null;
 
 
-    public adapterProfile(String[] publica, String[] seguid, String[] siguend, String[] url, Context c) {
+    public adapterProfile(String[] id, String[] url, Context c) {
         this.cxt = c;
-        this.publicaciones = publica;
-        this.siguendo = siguend;
-        this.seguidores = seguid;
         this.urls = url;
+        this.ids = id;
         inflater = (LayoutInflater) this.cxt.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     @Override
     public int getCount() {
-        return publicaciones.length;
+        return urls.length;
     }
 
     @Override
     public Object getItem(int position) {
-        return publicaciones[position];
+        return urls[position];
     }
 
     @Override
@@ -49,22 +48,37 @@ public class adapterProfile extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
 
         View vi = convertView;
-
         if (vi == null) {
-            vi = inflater.inflate(R.layout.rowlistsearch, null);
+            vi = inflater.inflate(R.layout.rowgridview, null);
         }
 
-        ImageView image_view = (ImageView) vi.findViewById(R.id.imageSearch);
-        Picasso.with(cxt).load(urls[position]).into(image_view);
+        ImageView tv = (ImageView) vi.findViewById(R.id.imageGridView);
 
-        TextView text = (TextView) vi.findViewById(R.id.nameSearch);
-        //text.setText(names[position]);
+        WindowManager wm = (WindowManager) cxt.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
 
-        //System.out.println("DENTRO -> " + names[position]);
+        Point size = new Point();
+        display.getSize(size);
+
+        tv.getLayoutParams().width = size.x / 3;
+        tv.getLayoutParams().height = size.x / 3;
+
+        Picasso.with(cxt).load(urls[position]).into(tv);
+
+        tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(cxt, fotoIndividual.class);
+                i.putExtra("idfoto", ids[position]);
+                cxt.startActivity(i);
+            }
+        });
+
 
         return vi;
     }
+
 }
