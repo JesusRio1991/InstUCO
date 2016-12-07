@@ -54,13 +54,13 @@ public class userProfile extends AppCompatActivity {
 
             JSONArray n_followers = jsonObj.getJSONArray("seguidores");
             JSONObject n_followers_c = n_followers.getJSONObject(0);
-            TextView txtSeguidores = (TextView) findViewById(R.id.profileSeguidores);
+            final TextView txtSeguidores = (TextView) findViewById(R.id.profileSeguidores);
             txtSeguidores.setText(n_followers_c.getString("n_followers"));
 
 
             JSONArray n_following = jsonObj.getJSONArray("siguiendo");
             JSONObject n_following_c = n_following.getJSONObject(0);
-            TextView txtSiguiendo = (TextView) findViewById(R.id.profileSiguiendo);
+            final TextView txtSiguiendo = (TextView) findViewById(R.id.profileSiguiendo);
             txtSiguiendo.setText(n_following_c.getString("n_following"));
 
 
@@ -116,10 +116,20 @@ public class userProfile extends AppCompatActivity {
                         btn.setText("SEGUIR");
                         url = "http://ucogram.hol.es/setNotFriends.php?username1=" + remove(nombre + apellidos) + "&username2=" + q;
                         finalFriend[0] = 1;
+
+                        int seguidores = Integer.parseInt(txtSeguidores.getText().toString());
+                        seguidores--;
+                        txtSeguidores.setText(Integer.toString(seguidores));
+
+
                     } else {
                         btn.setText("SIGUIENDO");
                         url = "http://ucogram.hol.es/setFriends.php?username1=" + remove(nombre + apellidos) + "&username2=" + q;
                         finalFriend[0] = 0;
+
+                        int siguiendo = Integer.parseInt(txtSeguidores.getText().toString());
+                        siguiendo++;
+                        txtSeguidores.setText(Integer.toString(siguiendo));
                     }
 
 

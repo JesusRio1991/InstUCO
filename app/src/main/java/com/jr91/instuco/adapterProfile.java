@@ -34,12 +34,12 @@ public class adapterProfile extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return urls.length;
+        return ids.length;
     }
 
     @Override
     public Object getItem(int position) {
-        return urls[position];
+        return ids[position];
     }
 
     @Override
