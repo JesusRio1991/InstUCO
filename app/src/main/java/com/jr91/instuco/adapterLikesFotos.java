@@ -14,18 +14,19 @@ import android.widget.ImageView;
 import com.squareup.picasso.Picasso;
 
 /**
- * Created by Usuario on 5/12/16.
+ * Created by Usuario on 9/12/16.
  */
 
-public class adapterProfile extends BaseAdapter {
+public class adapterLikesFotos extends BaseAdapter {
 
     String[] urls;
     String[] ids;
+
     Context cxt;
     private static LayoutInflater inflater = null;
 
 
-    public adapterProfile(String[] id, String[] url, Context c) {
+    public adapterLikesFotos(String[] url, String[] id, Context c) {
         this.cxt = c;
         this.urls = url;
         this.ids = id;
@@ -81,5 +82,4 @@ public class adapterProfile extends BaseAdapter {
 
         return vi;
     }
-
 }

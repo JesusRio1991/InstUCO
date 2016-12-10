@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "987231569181",
+    "firebase_url": "https://ucogram.firebaseio.com",
+    "project_id": "ucogram",
+    "storage_bucket": "ucogram.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:987231569181:android:08e4bb0d1503b9ef",
+        "android_client_info": {
+          "package_name": "com.jr91.instuco"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "987231569181-ag5m4p33rphpapbqcgal9lnbc0t59lgi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAV9a46VVxF3lVRuifMq-2FyTvMJOJiGI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

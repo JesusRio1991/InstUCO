@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.Display;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,6 +24,7 @@ import com.facebook.AccessToken;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 
+
 public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     private static String url = "http://ucogram.hol.es/";
@@ -31,6 +33,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     public static final String id = "idUser";
     SwipeRefreshLayout refreshLayout;
     int width = 0;
+    String nombre;
+    String apellidos;
+    private GestureDetector gestureScanner;
 
 
     @Override
@@ -39,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         setContentView(R.layout.activity_image_list);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
 
 
         refreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeToRefresh);
@@ -51,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
 
         progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Downloading images ...");
+        progressDialog.setMessage("Obteniendo información ...");
         progressDialog.show();
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
@@ -107,14 +113,14 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         });
 
         ListView listview = (ListView) findViewById(R.id.imageListView);
-        listview.setAdapter(new adapterListView(new String[]{}, this, new String[]{}, new String[]{}, new String[]{}, new String[]{}, null, size.x, new String[]{}));
+        listview.setAdapter(new adapterListView(new String[]{}, new String[]{}, this, new String[]{}, new String[]{}, new String[]{}, new String[]{}, null, size.x, new String[]{}));
 
         width = size.x;
 
         Profile profile = Profile.getCurrentProfile();
 
-        String nombre = profile.getFirstName().replace(" ", "");
-        String apellidos = profile.getLastName().replace(" ", "");
+        nombre = profile.getFirstName().replace(" ", "");
+        apellidos = profile.getLastName().replace(" ", "");
 
         new getInfo(progressDialog, this, url + "getMain.php?username=" + remove(nombre + apellidos), "main", width).execute();
 
@@ -166,16 +172,19 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             finish();
             return true;
         }
+        if (id == R.id.likesPictures) {
+            Intent intent = new Intent(this, likeFotos.class);
+            intent.putExtra("username", remove(nombre + apellidos));
+            startActivity(intent);
+            finish();
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onRefresh() {
-        Profile profile = Profile.getCurrentProfile();
-
-        String nombre = profile.getFirstName().replace(" ", "");
-        String apellidos = profile.getLastName().replace(" ", "");
 
         new getInfo(progressDialog, this, url + "getMain.php?username=" + remove(nombre + apellidos), "main", width).execute();
         refreshLayout.setRefreshing(false);
@@ -195,4 +204,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }//for i
         return output;
     }//remove1
+
+
 }

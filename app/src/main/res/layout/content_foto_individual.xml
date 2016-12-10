@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:paddingLeft="40dp"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="5dp">
 
         <ImageView
             app:srcCompat="@mipmap/ic_b_corazon"
@@ -40,6 +40,17 @@
             android:layout_height="50dp"
             android:layout_width="50dp" />
 
+        <TextView
+            android:text="0 Me gusta"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/textView24"
+            android:layout_weight="0.78"
+            android:paddingTop="20dp"
+            android:paddingLeft="10dp"
+            android:textStyle="bold"
+            android:textColor="@color/com_facebook_button_background_color_pressed" />
+
     </LinearLayout>
 
     <TextView
@@ -51,11 +62,12 @@
         android:paddingLeft="45dp"
         android:paddingRight="45dp"
         android:text="Comentario"
-        android:paddingTop="20dp" />
+        android:layout_marginBottom="20dp" />
 
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:divider="@null"
         android:id="@+id/listComment" />
 
 

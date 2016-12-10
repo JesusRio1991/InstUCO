@@ -1,35 +1,27 @@
 package com.jr91.instuco;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.Profile;
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.URLEncoder;
 import java.util.Iterator;
 
 public class fotoIndividual extends AppCompatActivity {
 
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,9 +49,60 @@ public class fotoIndividual extends AppCompatActivity {
             ImageView imageUploaded = (ImageView) findViewById(R.id.imageView);
             Picasso.with(this).load(fotoPerfil_c.getString("url")).into(imageUploaded);
 
+            final String user = fotoPerfil_c.getString("username");
+
+
+            JSONArray megustas = jsonObj.getJSONArray("like_photo");
+            final JSONObject[] megustas_c = {megustas.getJSONObject(0)};
+            final TextView mtxt = (TextView) findViewById(R.id.textView24);
+            mtxt.setText(megustas_c[0].getString("value") + " Me gusta");
+
+
+            final int[] co = {Integer.parseInt(megustas_c[0].getString("value"))};
+
             JSONObject comentario_c = fotoPerfil.getJSONObject(0);
             TextView txtPublicaciones = (TextView) findViewById(R.id.comment);
             txtPublicaciones.setText(comentario_c.getString("comment"));
+
+            JSONArray comentarios = jsonObj.getJSONArray("comentarios");
+
+            String[] names = new String[comentarios.length()];
+            String[] comenta = new String[comentarios.length()];
+            String[] urls = new String[comentarios.length()];
+
+            // Getting JSON Array node
+            for (int i = 0; i < comentarios.length(); i++) {
+                JSONObject c = comentarios.getJSONObject(i);
+
+                names[i] = c.getString("username");
+
+                if (names[i].compareTo("none") == 0) {
+                    names[i] = null;
+                    break;
+                }
+
+
+                names[i] = c.getString("username");
+                comenta[i] = c.getString("comments");
+                urls[i] = c.getString("urlfoto");
+
+
+            }
+
+            final ImageView cmt = (ImageView) findViewById(R.id.imageView4);
+
+            cmt.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i = new Intent(fotoIndividual.this, writeComent.class);
+                    i.putExtra("idfoto", q);
+                    i.putExtra("username", user);
+                    startActivity(i);
+                }
+            });
+
+            ListView lst = (ListView) findViewById(R.id.listComment);
+            lst.setAdapter(new adapterComment(urls, names, comenta, fotoIndividual.this));
 
             JSONArray like = jsonObj.getJSONArray("like");
             final JSONObject like_c = like.getJSONObject(0);
@@ -74,16 +117,48 @@ public class fotoIndividual extends AppCompatActivity {
                     String apellidos = profile.getLastName().replace(" ", "");
 
                     String url = "";
+                    HttpURLConnectionE h = new HttpURLConnectionE();
+
 
                     try {
                         if (like_c.getString("value").compareTo("0") == 0) {
                             imageC.setImageResource(R.mipmap.ic_b_corazon);
                             url = "http://ucogram.hol.es/dislike.php?username=" + remove(nombre + apellidos) + "&idfoto=" + q;
                             like_c.put("value", 1);
+
+                            co[0]--;
+
+                            mtxt.setText(co[0] + " Me gusta");
+
                         } else {
+
+                            String url_noti = "http://ucogram.hol.es/getToken.php?username=" + user;
+                            try {
+                                String jsonStr = h.sendGet(url_noti);
+                                JSONObject jsonObj = new JSONObject(jsonStr);
+
+                                // Getting JSON Array node
+                                JSONArray object = jsonObj.getJSONArray("token");
+                                JSONObject tk_obj = object.getJSONObject(0);
+
+
+                                String text = remove(nombre + apellidos) + " ha dado a me gusta a una foto.";
+                                String tittle = "Nuevos me gusta.";
+                                url_noti = "http://ucogram.hol.es/sendNotification.php?token=" + tk_obj.getString("token") + "&text=" + URLEncoder.encode(text, "UTF-8") + "&tittle=" + URLEncoder.encode(tittle, "UTF-8");
+
+                                h.sendGet(url_noti);
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
                             imageC.setImageResource(R.mipmap.ic_r_corazon);
                             url = "http://ucogram.hol.es/like.php?username=" + remove(nombre + apellidos) + "&idfoto=" + q;
                             like_c.put("value", 0);
+
+                            co[0]++;
+
+                            mtxt.setText(co[0] + " Me gusta");
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -91,7 +166,6 @@ public class fotoIndividual extends AppCompatActivity {
 
                     // int position = listview.getPositionForView(arg0);
 
-                    HttpURLConnectionE h = new HttpURLConnectionE();
                     try {
 
                         String json = h.sendGet(url);
@@ -121,9 +195,6 @@ public class fotoIndividual extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     public static String remove(String input) {
@@ -139,39 +210,5 @@ public class fotoIndividual extends AppCompatActivity {
         return output;
     }//remove1
 
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    public Action getIndexApiAction() {
-        Thing object = new Thing.Builder()
-                .setName("fotoIndividual Page") // TODO: Define a title for the content shown.
-                // TODO: Make sure this auto-generated URL is correct.
-                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
-                .build();
-        return new Action.Builder(Action.TYPE_VIEW)
-                .setObject(object)
-                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
-                .build();
-    }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        AppIndex.AppIndexApi.start(client, getIndexApiAction());
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        AppIndex.AppIndexApi.end(client, getIndexApiAction());
-        client.disconnect();
-    }
 }

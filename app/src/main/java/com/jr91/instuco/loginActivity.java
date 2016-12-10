@@ -1,8 +1,13 @@
 package com.jr91.instuco;
 
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Base64;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,10 +20,14 @@ import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.google.firebase.iid.FirebaseInstanceId;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 
 
@@ -37,7 +46,26 @@ public class loginActivity extends AppCompatActivity {
         FacebookSdk.sdkInitialize(getApplicationContext());
         setContentView(R.layout.activity_login);
 
+
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(
+                    getPackageName(), PackageManager.GET_SIGNATURES);
+            for (Signature signature : info.signatures) {
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                Log.e("MY_KEY_HASH:",
+                        Base64.encodeToString(md.digest(), Base64.DEFAULT));
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+        } catch (NoSuchAlgorithmException e) {
+        }
+
         if (AccessToken.getCurrentAccessToken() != null && Profile.getCurrentProfile() != null) {
+            Profile profile = Profile.getCurrentProfile();
+
+            String refreshedToken = FirebaseInstanceId.getInstance().getToken();
+            sendRegistrationToServer(refreshedToken);
+
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
             finish();
@@ -55,6 +83,8 @@ public class loginActivity extends AppCompatActivity {
                     login(loginResult.getAccessToken().getUserId());
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
 
             }
@@ -71,16 +101,18 @@ public class loginActivity extends AppCompatActivity {
         });
     }
 
-    private void login(String userId) throws UnsupportedEncodingException {
+
+    private void login(String userId) throws UnsupportedEncodingException, JSONException {
 
         Profile profile = Profile.getCurrentProfile();
 
         String nombre = profile.getFirstName().replace(" ", "");
         String apellidos = profile.getLastName().replace(" ", "");
 
-        String url = "http://ucogram.hol.es/setUser.php";
+        String refreshedToken = FirebaseInstanceId.getInstance().getToken();
+        sendRegistrationToServer(refreshedToken);
 
-        url += "?username=" + remove(nombre + apellidos) + "&urlfoto=" + "https://graph.facebook.com/" + userId + "/picture?type=large";
+        String url = "http://ucogram.hol.es/setUser.php?username=" + remove(nombre + apellidos) + "&urlfoto=" + "https://graph.facebook.com/" + userId + "/picture?type=large";
 
         HttpURLConnectionE h = new HttpURLConnectionE();
         try {
@@ -126,5 +158,30 @@ public class loginActivity extends AppCompatActivity {
         callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
+
+    /**
+     * Persist token to third-party servers.
+     * <p>
+     * Modify this method to associate the user's FCM InstanceID token with any server-side account
+     * maintained by your application.
+     *
+     * @param token The new token.
+     */
+    public static void sendRegistrationToServer(String token) {
+        // TODO: Implement this method to send token to your app server.
+        Profile profile = Profile.getCurrentProfile();
+
+        String nombre = profile.getFirstName().replace(" ", "");
+        String apellidos = profile.getLastName().replace(" ", "");
+
+        HttpURLConnectionE h = new HttpURLConnectionE();
+
+        String url_noti = "http://ucogram.hol.es/uploadToken.php?username=" + remove(nombre + apellidos) + "&token=" + token;
+        try {
+            h.sendGet(url_noti);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 }

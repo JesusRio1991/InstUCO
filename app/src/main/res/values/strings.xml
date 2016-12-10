@@ -9,7 +9,11 @@
     <string name="title_activity_main">MainActivity</string>
 
     <string name="salir">Salir</string>
+    <string name="likesPictures">Fotos que te gustan</string>
     <string name="title_activity_search">UCOgram</string>
     <string name="title_activity_user_profile">userProfile</string>
     <string name="title_activity_foto_individual">fotoIndividual</string>
+    <string name="title_activity_like_fotos">likeFotos</string>
+    <string name="title_activity_list_friends">listFriends</string>
+    <string name="title_activity_write_coment">writeComent</string>
 </resources>

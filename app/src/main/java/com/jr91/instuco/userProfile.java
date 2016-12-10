@@ -57,22 +57,42 @@ public class userProfile extends AppCompatActivity {
             final TextView txtSeguidores = (TextView) findViewById(R.id.profileSeguidores);
             txtSeguidores.setText(n_followers_c.getString("n_followers"));
 
+            txtSeguidores.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i = new Intent(userProfile.this, listFriends.class);
+                    i.putExtra("username", q);
+                    i.putExtra("aux", "0");
+                    startActivity(i);
+                }
+            });
+
 
             JSONArray n_following = jsonObj.getJSONArray("siguiendo");
             JSONObject n_following_c = n_following.getJSONObject(0);
             final TextView txtSiguiendo = (TextView) findViewById(R.id.profileSiguiendo);
             txtSiguiendo.setText(n_following_c.getString("n_following"));
 
+            txtSiguiendo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i = new Intent(userProfile.this, listFriends.class);
+                    i.putExtra("username", q);
+                    i.putExtra("aux", "1");
+                    startActivity(i);
+                }
+            });
 
             JSONArray fotoPerfil = jsonObj.getJSONArray("fotoPerfil");
             final JSONObject fotoPerfil_c = fotoPerfil.getJSONObject(0);
             ImageView imageUploaded = (ImageView) findViewById(R.id.profileImg);
             Picasso.with(this).load(fotoPerfil_c.getString("urlfoto")).into(imageUploaded);
 
-
-            String[] urls_grid = new String[500];
-            String[] ids = new String[500];
             JSONArray object = jsonObj.getJSONArray("pictures");
+
+            String[] urls_grid = new String[object.length()];
+            String[] ids = new String[object.length()];
+
 
             for (int i = 0; i < object.length(); i++) {
                 JSONObject c = object.getJSONObject(i);
@@ -87,62 +107,70 @@ public class userProfile extends AppCompatActivity {
 
             final Button btn = (Button) findViewById(R.id.profileSeguir);
 
-            JSONArray fri = jsonObj.getJSONArray("friends");
-            final JSONObject fri_c = fri.getJSONObject(0);
 
-            int friend = 0;
+            if (q.compareTo(remove(nombre + apellidos)) != 0) {
+                JSONArray fri = jsonObj.getJSONArray("friends");
+                final JSONObject fri_c = fri.getJSONObject(0);
 
-            if (fri_c.getString("value").compareTo("0") == 0) {
-                btn.setText("SIGUIENDO");
-                friend = 0;
+                int friend = 0;
+
+                if (fri_c.getString("value").compareTo("0") == 0) {
+                    btn.setText("SIGUIENDO");
+                    friend = 0;
+                } else {
+                    btn.setText("SEGUIR");
+                    friend = 1;
+                }
+
+
+                final int[] finalFriend = {friend};
+                btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        Profile profile = Profile.getCurrentProfile();
+
+                        String nombre = profile.getFirstName().replace(" ", "");
+                        String apellidos = profile.getLastName().replace(" ", "");
+                        String url = "";
+
+                        if (finalFriend[0] == 0) {
+                            btn.setText("SEGUIR");
+                            url = "http://ucogram.hol.es/setNotFriends.php?username1=" + remove(nombre + apellidos) + "&username2=" + q;
+                            finalFriend[0] = 1;
+
+                            int seguidores = Integer.parseInt(txtSeguidores.getText().toString());
+                            seguidores--;
+                            txtSeguidores.setText(Integer.toString(seguidores));
+
+
+                        } else {
+                            btn.setText("SIGUIENDO");
+                            url = "http://ucogram.hol.es/setFriends.php?username1=" + remove(nombre + apellidos) + "&username2=" + q;
+                            finalFriend[0] = 0;
+
+                            int siguiendo = Integer.parseInt(txtSeguidores.getText().toString());
+                            siguiendo++;
+                            txtSeguidores.setText(Integer.toString(siguiendo));
+
+                        }
+
+
+                        HttpURLConnectionE h = new HttpURLConnectionE();
+                        try {
+                            h.sendGet(url);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+
+                    }
+                });
             } else {
-                btn.setText("SEGUIR");
-                friend = 1;
+                btn.setVisibility(View.INVISIBLE);
             }
 
 
-            final int[] finalFriend = {friend};
-            btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                    Profile profile = Profile.getCurrentProfile();
-
-                    String nombre = profile.getFirstName().replace(" ", "");
-                    String apellidos = profile.getLastName().replace(" ", "");
-                    String url = "";
-
-                    if (finalFriend[0] == 0) {
-                        btn.setText("SEGUIR");
-                        url = "http://ucogram.hol.es/setNotFriends.php?username1=" + remove(nombre + apellidos) + "&username2=" + q;
-                        finalFriend[0] = 1;
-
-                        int seguidores = Integer.parseInt(txtSeguidores.getText().toString());
-                        seguidores--;
-                        txtSeguidores.setText(Integer.toString(seguidores));
-
-
-                    } else {
-                        btn.setText("SIGUIENDO");
-                        url = "http://ucogram.hol.es/setFriends.php?username1=" + remove(nombre + apellidos) + "&username2=" + q;
-                        finalFriend[0] = 0;
-
-                        int siguiendo = Integer.parseInt(txtSeguidores.getText().toString());
-                        siguiendo++;
-                        txtSeguidores.setText(Integer.toString(siguiendo));
-                    }
-
-
-                    HttpURLConnectionE h = new HttpURLConnectionE();
-                    try {
-                        h.sendGet(url);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-
-                }
-            });
 
 
         } catch (Exception e) {

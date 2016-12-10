@@ -32,6 +32,7 @@ public class getInfo extends AsyncTask<Void, Void, Void> {
     ArrayList<String> idFoto = new ArrayList<String>();
     ArrayList<String> comentario = new ArrayList<String>();
     ArrayList<String> like = new ArrayList<String>();
+    ArrayList<String> like_ph = new ArrayList<String>();
     private ProgressDialog progressDialog;
     int sizeX;
 
@@ -75,6 +76,7 @@ public class getInfo extends AsyncTask<Void, Void, Void> {
                     idFoto.add(c.getString("idfoto"));
                     comentario.add(c.getString("comment"));
                     like.add(c.getString("like"));
+                    like_ph.add(c.getString("like_photo"));
                 }
             } catch (final JSONException e) {
                 Log.e("ERROR -> ", "Json parsing error: " + e.getMessage());
@@ -101,9 +103,10 @@ public class getInfo extends AsyncTask<Void, Void, Void> {
         String[] id = idFoto.toArray(new String[0]);
         String[] cm = comentario.toArray(new String[0]);
         String[] li = like.toArray(new String[0]);
+        String[] ph = like_ph.toArray(new String[0]);
 
 
-        final adapterListView adapter = new adapterListView(li, cxt, us, ur, up, id, idFoto, sizeX, cm);
+        final adapterListView adapter = new adapterListView(li, ph, cxt, us, ur, up, id, idFoto, sizeX, cm);
 
         // URL to get contacts JSON
         final ListView listview = (ListView) ((Activity) cxt).findViewById(R.id.imageListView);
