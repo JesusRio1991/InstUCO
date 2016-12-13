@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.facebook.Profile;
 import com.squareup.picasso.Picasso;
@@ -18,7 +17,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URLEncoder;
-import java.util.Iterator;
 
 public class fotoIndividual extends AppCompatActivity {
 
@@ -56,6 +54,15 @@ public class fotoIndividual extends AppCompatActivity {
             final JSONObject[] megustas_c = {megustas.getJSONObject(0)};
             final TextView mtxt = (TextView) findViewById(R.id.textView24);
             mtxt.setText(megustas_c[0].getString("value") + " Me gusta");
+
+            mtxt.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent i = new Intent(fotoIndividual.this, likePictureUsers.class);
+                    i.putExtra("idfoto", q);
+                    startActivity(i);
+                }
+            });
 
 
             final int[] co = {Integer.parseInt(megustas_c[0].getString("value"))};
@@ -143,7 +150,7 @@ public class fotoIndividual extends AppCompatActivity {
 
 
                                 String text = remove(nombre + apellidos) + " ha dado a me gusta a una foto.";
-                                String tittle = "Nuevos me gusta.";
+                                String tittle = "¡Nuevos me gusta!";
                                 url_noti = "http://ucogram.hol.es/sendNotification.php?token=" + tk_obj.getString("token") + "&text=" + URLEncoder.encode(text, "UTF-8") + "&tittle=" + URLEncoder.encode(tittle, "UTF-8");
 
                                 h.sendGet(url_noti);
@@ -164,19 +171,10 @@ public class fotoIndividual extends AppCompatActivity {
                         e.printStackTrace();
                     }
 
-                    // int position = listview.getPositionForView(arg0);
-
                     try {
 
-                        String json = h.sendGet(url);
-                        JSONObject jsonObj = new JSONObject(json);
+                        h.sendGet(url);
 
-                        Iterator<String> keys = jsonObj.keys();
-                        while (keys.hasNext()) {
-                            String keyValue = (String) keys.next();
-                            String valueString = jsonObj.getString(keyValue);
-                            Toast.makeText(fotoIndividual.this, valueString, Toast.LENGTH_LONG).show();
-                        }
 
                     } catch (Exception e) {
                         e.printStackTrace();

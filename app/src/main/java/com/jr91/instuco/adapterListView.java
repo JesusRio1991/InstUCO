@@ -14,7 +14,6 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.facebook.Profile;
 import com.squareup.picasso.Picasso;
@@ -24,7 +23,6 @@ import org.json.JSONObject;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * Created by Usuario on 16/11/16.
@@ -118,6 +116,15 @@ class adapterListView extends BaseAdapter {
         final TextView lik_ph = (TextView) vi.findViewById(R.id.textView);
         lik_ph.setText(like_photo[position] + " Me gusta");
 
+        lik_ph.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(context, likePictureUsers.class);
+                i.putExtra("idfoto", id.get(position));
+                context.startActivity(i);
+            }
+        });
+
         ImageView imageIcon = (ImageView) vi.findViewById(R.id.imageView2);
         Picasso.with(context).load(userpictures[position]).into(imageIcon);
 
@@ -173,8 +180,33 @@ class adapterListView extends BaseAdapter {
                                         downloadTask.cancel(true);
                                     }
                                 });
-                            }
 
+                                HttpURLConnectionE h = new HttpURLConnectionE();
+                                String url_noti = "http://ucogram.hol.es/getToken.php?username=" + data[position];
+
+                                try {
+                                    String jsonStr = h.sendGet(url_noti);
+                                    JSONObject jsonObj = new JSONObject(jsonStr);
+
+                                    // Getting JSON Array node
+                                    JSONArray object = jsonObj.getJSONArray("token");
+                                    JSONObject tk_obj = object.getJSONObject(0);
+
+                                    Profile profile = Profile.getCurrentProfile();
+
+                                    String nombre = profile.getFirstName().replace(" ", "");
+                                    String apellidos = profile.getLastName().replace(" ", "");
+
+                                    String text = remove(nombre + apellidos) + " ha descargado una foto tuya.";
+                                    String tittle = "¡Nuevas fotos descargadas!";
+                                    url_noti = "http://ucogram.hol.es/sendNotification.php?token=" + tk_obj.getString("token") + "&text=" + URLEncoder.encode(text, "UTF-8") + "&tittle=" + URLEncoder.encode(tittle, "UTF-8");
+
+                                    h.sendGet(url_noti);
+
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         })
                         .setNegativeButton("No", null)
                         .show();
@@ -227,7 +259,7 @@ class adapterListView extends BaseAdapter {
 
 
                         String text = remove(nombre + apellidos) + " ha dado a me gusta a una foto.";
-                        String tittle = "Nuevos me gusta.";
+                        String tittle = "¡Nuevos me gusta!";
                         url_noti = "http://ucogram.hol.es/sendNotification.php?token=" + tk_obj.getString("token") + "&text=" + URLEncoder.encode(text, "UTF-8") + "&tittle=" + URLEncoder.encode(tittle, "UTF-8");
 
                         h.sendGet(url_noti);
@@ -237,20 +269,9 @@ class adapterListView extends BaseAdapter {
                     }
                 }
 
-                int position = listview.getPositionForView(arg0);
-
-
                 try {
 
-                    String json = h.sendGet(url);
-                    JSONObject jsonObj = new JSONObject(json);
-
-                    Iterator<String> keys = jsonObj.keys();
-                    while (keys.hasNext()) {
-                        String keyValue = (String) keys.next();
-                        String valueString = jsonObj.getString(keyValue);
-                        Toast.makeText(context, valueString, Toast.LENGTH_LONG).show();
-                    }
+                    h.sendGet(url);
 
                 } catch (Exception e) {
                     e.printStackTrace();

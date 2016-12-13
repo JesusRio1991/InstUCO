@@ -16,4 +16,5 @@
     <string name="title_activity_like_fotos">likeFotos</string>
     <string name="title_activity_list_friends">listFriends</string>
     <string name="title_activity_write_coment">writeComent</string>
+    <string name="title_activity_like_picture_users">likePictureUsers</string>
 </resources>

@@ -16,6 +16,7 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
 public class userProfile extends AppCompatActivity {
@@ -143,6 +144,26 @@ public class userProfile extends AppCompatActivity {
                             seguidores--;
                             txtSeguidores.setText(Integer.toString(seguidores));
 
+                            HttpURLConnectionE h = new HttpURLConnectionE();
+                            String url_noti = "http://ucogram.hol.es/getToken.php?username=" + q;
+                            try {
+                                String jsonStr = h.sendGet(url_noti);
+                                JSONObject jsonObj = new JSONObject(jsonStr);
+
+                                // Getting JSON Array node
+                                JSONArray object = jsonObj.getJSONArray("token");
+                                JSONObject tk_obj = object.getJSONObject(0);
+
+
+                                String text = remove(nombre + apellidos) + " te ha dejado de seguir.";
+                                String tittle = "¡Estas perdiendo seguidores!.";
+                                url_noti = "http://ucogram.hol.es/sendNotification.php?token=" + tk_obj.getString("token") + "&text=" + URLEncoder.encode(text, "UTF-8") + "&tittle=" + URLEncoder.encode(tittle, "UTF-8");
+
+                                h.sendGet(url_noti);
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
 
                         } else {
                             btn.setText("SIGUIENDO");
@@ -152,6 +173,27 @@ public class userProfile extends AppCompatActivity {
                             int siguiendo = Integer.parseInt(txtSeguidores.getText().toString());
                             siguiendo++;
                             txtSeguidores.setText(Integer.toString(siguiendo));
+
+                            HttpURLConnectionE h = new HttpURLConnectionE();
+                            String url_noti = "http://ucogram.hol.es/getToken.php?username=" + q;
+                            try {
+                                String jsonStr = h.sendGet(url_noti);
+                                JSONObject jsonObj = new JSONObject(jsonStr);
+
+                                // Getting JSON Array node
+                                JSONArray object = jsonObj.getJSONArray("token");
+                                JSONObject tk_obj = object.getJSONObject(0);
+
+
+                                String text = remove(nombre + apellidos) + " te ha seguido.";
+                                String tittle = "¡Nuevos seguidores!";
+                                url_noti = "http://ucogram.hol.es/sendNotification.php?token=" + tk_obj.getString("token") + "&text=" + URLEncoder.encode(text, "UTF-8") + "&tittle=" + URLEncoder.encode(tittle, "UTF-8");
+
+                                h.sendGet(url_noti);
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
 
                         }
 

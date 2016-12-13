@@ -55,7 +55,7 @@ public class writeComent extends AppCompatActivity {
 
 
                     String text = remove(nombre + apellidos) + " Ha comentado una foto.";
-                    String tittle = "Nuevos comentarios.";
+                    String tittle = "¡Nuevos comentarios!";
                     url_noti = "http://ucogram.hol.es/sendNotification.php?token=" + tk_obj.getString("token") + "&text=" + URLEncoder.encode(text, "UTF-8") + "&tittle=" + URLEncoder.encode(tittle, "UTF-8");
 
                     h.sendGet(url_noti);

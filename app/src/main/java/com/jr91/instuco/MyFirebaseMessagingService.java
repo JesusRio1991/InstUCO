@@ -12,6 +12,8 @@ import android.util.Log;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.Date;
+
 /**
  * Created by Usuario on 10/12/16.
  */
@@ -81,6 +83,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+        long time = new Date().getTime();
+        String tmpStr = String.valueOf(time);
+        String last4Str = tmpStr.substring(tmpStr.length() - 5);
+        int notificationId = Integer.valueOf(last4Str);
+
+        notificationManager.notify(notificationId, notificationBuilder.build());
     }
 }

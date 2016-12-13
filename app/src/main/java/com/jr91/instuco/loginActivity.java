@@ -171,17 +171,20 @@ public class loginActivity extends AppCompatActivity {
         // TODO: Implement this method to send token to your app server.
         Profile profile = Profile.getCurrentProfile();
 
-        String nombre = profile.getFirstName().replace(" ", "");
-        String apellidos = profile.getLastName().replace(" ", "");
+        if (profile != null) {
+            String nombre = profile.getFirstName().replace(" ", "");
+            String apellidos = profile.getLastName().replace(" ", "");
 
-        HttpURLConnectionE h = new HttpURLConnectionE();
+            HttpURLConnectionE h = new HttpURLConnectionE();
 
-        String url_noti = "http://ucogram.hol.es/uploadToken.php?username=" + remove(nombre + apellidos) + "&token=" + token;
-        try {
-            h.sendGet(url_noti);
-        } catch (Exception e) {
-            e.printStackTrace();
+            String url_noti = "http://ucogram.hol.es/uploadToken.php?username=" + remove(nombre + apellidos) + "&token=" + token;
+            try {
+                h.sendGet(url_noti);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+
     }
 
 }
